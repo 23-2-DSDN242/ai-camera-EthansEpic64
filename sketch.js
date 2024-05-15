@@ -18,7 +18,7 @@ function setup () {
 
   imageMode(CENTER);
   noStroke();
-  background(255, 0, 0);
+  background(0,0,0);
   sourceImg.loadPixels();
   maskImg.loadPixels();
 }
@@ -31,11 +31,11 @@ function draw () {
     let mask = maskImg.get(x, y);
     fill(pix);
     if(mask[0] > 128) {
-      let pointSize = 10;
+      let pointSize = 20;
       ellipse(x, y, pointSize, pointSize);
     }
     else {
-      let pointSize = 20;
+      let pointSize = 10;
       rect(x, y, pointSize, pointSize);    
     }
   }
