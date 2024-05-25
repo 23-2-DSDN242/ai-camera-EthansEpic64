@@ -1,15 +1,18 @@
 let sourceImg=null;
-let maskImg=null;
+let carmaskImg=null;
+let facemaskImg=null;
 let renderCounter=0;
 
 // change these three lines as appropiate
 let sourceFile = "input_1.jpg";
-let maskFile   = "mask_1.png";
+let carmask   = "mask_car1.png";
+let facemask = "mask_face1.png"
 let outputFile = "output_1.png";
 
 function preload() {
   sourceImg = loadImage(sourceFile);
-  maskImg = loadImage(maskFile);
+  carmaskImg = loadImage(carmask);
+  facemaskImg = loadImage(facemask);
 }
 
 function setup () {
@@ -20,7 +23,8 @@ function setup () {
   noStroke();
   background(0,0,0);
   sourceImg.loadPixels();
-  maskImg.loadPixels();
+  facemaskImg.loadPixels();
+  carmaskImg.loadPixels();
 }
 
 function draw () {
@@ -28,15 +32,22 @@ function draw () {
     let x = floor(random(sourceImg.width));
     let y = floor(random(sourceImg.height));
     let pix = sourceImg.get(x, y);
-    let mask = maskImg.get(x, y);
+    let car = carmaskImg.get(x, y);
+    let face = facemaskImg.get(x,y);
     fill(pix);
-    if(mask[0] > 128) {
+    if(face[0] > 128) {
       let pointSize = 20;
+      fill(255,0,0,80);
       ellipse(x, y, pointSize, pointSize);
     }
     else {
       let pointSize = 10;
       rect(x, y, pointSize, pointSize);    
+    }
+    if(car[0] > 128) {
+      let pointSize = 12;
+      fill(0);
+      rect(x,y,pointSize, pointSize);
     }
   }
   renderCounter = renderCounter + 1;
