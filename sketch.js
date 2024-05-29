@@ -27,78 +27,83 @@ function setup () {
   carmaskImg.loadPixels();
 }
 
-// let X_STOP = 640;
-// let Y_STOP = 480;
+let X_STOP = 640;
+let Y_STOP = 480;
 
-let X_STOP = 1920;
-let Y_STOP = 1080;
+// let X_STOP = 1920;
+// let Y_STOP = 1080;
 
-let OFFSET = 2;
+let OFFSET = 2; //CHAGNE TO 4 for outputs
 
-let renderCounter=0;
+let renderCounter=1;
 
 function draw () {
 
-  // colorMode(HSB);
-  // let num_lines_to_draw = 20;
-  // for(let j=renderCounter; j<renderCounter+num_lines_to_draw && j<1080; j++) {
-  //   for(let i=5; i<X_STOP; i++) {
-  //     colorMode(RGB);
-  //     let pix = [0, 0, 0, 255];
-  //     let car = carmaskImg.get(i, j);
-  //     if (car[1] > 128) {
-  //       pix = sourceImg.get(i, j);
-  //     }
-  //     else {
-  //       let sum_rgb = [0, 0, 0]
-  //       let num_cells = 0;
-  //       for(let wx=-OFFSET;wx<OFFSET;wx++){
-  //         for (let wy=-OFFSET;wy<OFFSET;wy++) {
-  //           let pix = sourceImg.get(i+wx, j+wy);
-  //           for(let c=0; c<3; c++) {
-  //             sum_rgb[c] += pix[c];
-  //           }
-  //           num_cells += 1;
-  //         }
-  //       }
-  //       for(let c=0; c<3; c++) {
-  //         pix[c] = int(sum_rgb[c] / num_cells);
-  //       }        
-  //    }
+  colorMode(HSB);
+  let num_lines_to_draw = 100;
+  for(let j=renderCounter; j<renderCounter+num_lines_to_draw && j<1920; j++) {
+    for(let i=5; i<X_STOP; i++) {
+      colorMode(RGB);
+      let pix = [0, 0, 0, 255];
+      let car = carmaskImg.get(i, j);
+      if (car[1] > 128) {
+        pix = sourceImg.get(i, j);
+      }
+      else {
+        let sum_rgb = [0, 0, 0]
+        let num_cells = 0;
+        for(let wx=-OFFSET;wx<OFFSET;wx++){
+          for (let wy=-OFFSET;wy<OFFSET;wy++) {
+            let pix = sourceImg.get(i+wx, j+wy);
+            for(let c=0; c<3; c++) {
+              sum_rgb[c] += pix[c];
+            }
+            num_cells += 1;
+          }
+        }
+        for(let c=0; c<3; c++) {
+          pix[c] = int(sum_rgb[c] / num_cells);
+        }        
+     }
 
-  //    set(i, j, pix);
-  // }
-  // }
+     set(i, j, pix);
+  }
+  }
  
+  renderCounter = renderCounter + num_lines_to_draw;
+  updatePixels();
+
   colorMode(RGB);
-  for(let i=0;i<4000;i++) {
-    let x = floor(random(sourceImg.width));
-    let y = floor(random(sourceImg.height));
+  for(let i=0;i<=4000;i++) {
+    let x = (random(sourceImg.width)); //MAKE THESE NOT RANDOM??
+    let y = (random(sourceImg.height));
     let pix2 = sourceImg.get(x, y);
     let car2 = carmaskImg.get(x, y);
     let face2 = facemaskImg.get(x,y);
+    let col = color(pix2);
   
+    if(car2[0] > 128) {
+      colorMode(HSB, 360,100,100);
+      let h = hue(col);
+      let s = saturation(col);
+      let b = brightness(col);
+
+      let new_brt = map(b, 0, 100, 30, 50);
+      let new_col = color(h, 0, new_brt);
+      set(x, y, new_col);
+      //let pointSize = 12;
+      //rect(x,y,pointSize, pointSize);
+    }
+
     fill(pix2);
     if(face2[0] > 128) {
+      colorMode(RGB);
       let pointSize = 20;
       fill(255,0,0,80);
-      rect(x, y, pointSize, pointSize);
-    }
-    else {
-      let pointSize = 10;
-      rect(x, y, pointSize, pointSize);    
+      ellipse(x, y, pointSize, pointSize);
     }
 
-    if(car2[0] > 128) {
-      let pointSize = 12;
-      fill(0);
-      rect(x,y,pointSize, pointSize);
-    }
   }
-
-
-  renderCounter = renderCounter + num_lines_to_draw;
-  updatePixels();
 
   renderCounter = renderCounter + 1;
   if(renderCounter > Y_STOP) {
