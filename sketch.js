@@ -1,13 +1,16 @@
 let sourceImg=null;
 let carmaskImg=null;
 let facemaskImg=null;
-//let renderCounter=0;
+let renderCounter=0
+let curLayer=0; //variable to seperate the image into layers
+//0 is the first layer (background)
+//anything other than zero is the second layer (car)
 
-// change these three lines as appropiate
-let sourceFile = "input_1.jpg";
-let carmask   = "mask_car1.png";
-let facemask = "mask_face1.png"
-let outputFile = "output_1.png";
+// change these four lines as appropiate
+let sourceFile = "input_6.jpg"; //original photo
+let carmask   = "mask_car6.png"; //mask of the car shape
+let facemask = "mask_face6.png" //mask of the car's face
+let outputFile = "output_6.png"; //processed image
 
 function preload() {
   sourceImg = loadImage(sourceFile);
@@ -17,7 +20,7 @@ function preload() {
 
 function setup () {
   let main_canvas = createCanvas(1920, 1080);
-  main_canvas.parent('canvasContainer');
+  main_canvas.parent('canvasContainer');  
 
   imageMode(CENTER);
   noStroke();
@@ -25,92 +28,85 @@ function setup () {
   sourceImg.loadPixels();
   facemaskImg.loadPixels();
   carmaskImg.loadPixels();
+  colorMode(HSB);
 }
 
-let X_STOP = 640;
-let Y_STOP = 480;
-
-// let X_STOP = 1920;
-// let Y_STOP = 1080;
-
-let OFFSET = 2; //CHAGNE TO 4 for outputs
-
-let renderCounter=1;
+let OFFSET = 4; //the level of blur in the background
 
 function draw () {
 
-  colorMode(HSB);
-  let num_lines_to_draw = 100;
-  for(let j=renderCounter; j<renderCounter+num_lines_to_draw && j<1920; j++) {
-    for(let i=5; i<X_STOP; i++) {
+  if (curLayer == 0) { //if the first layer is being processed
+    let num_lines_to_draw = 40; 
+    for(let j=renderCounter; j<renderCounter+num_lines_to_draw && j<1080; j++) { 
+      for(let i=0; i<1920; i++) {
+        colorMode(RGB); 
+        let pix = [0, 0, 0, 255];
+        let car = carmaskImg.get(i, j);
+        if (car[1] > 128) {
+          pix = sourceImg.get(i, j); 
+        }
+        else { //blur background where the car isnt
+          let sum_rgb = [0, 0, 0]
+          let num_cells = 0;
+          for(let wx=-OFFSET;wx<OFFSET;wx++){
+            for (let wy=-OFFSET;wy<OFFSET;wy++) {
+              let pix = sourceImg.get(i+wx, j+wy);
+              for(let c=0; c<3; c++) {
+                sum_rgb[c] += pix[c];
+              }
+              num_cells += 1;
+            }
+          }
+          for(let c=0; c<3; c++) {
+            pix[c] = int(sum_rgb[c] / num_cells);
+          }        
+       }
+  
+        set(i, j, pix);
+      }
+    }
+    renderCounter = renderCounter + num_lines_to_draw;
+    updatePixels(); 
+  }
+  else { //when the first layer is processed
+    rectMode(CORNERS);
+    for(let i=0; i<100; i++) {
+      let x1 = random(0, width);
+      let y1 = random(0, height);
+      let x2 = x1 + random(0, 20);
+      let y2 = y1 + random(0, 20);
       colorMode(RGB);
-      let pix = [0, 0, 0, 255];
-      let car = carmaskImg.get(i, j);
-      if (car[1] > 128) {
-        pix = sourceImg.get(i, j);
+      let pix = sourceImg.get(x1, y1);
+      let car = carmaskImg.get(x1, y1);
+      let face = facemaskImg.get(x1, y1);
+      let col = color(pix); //the original colour of the pixels in the image
+      stroke(col);
+      fill(col);
+      if(car[1] < 128) { //nothing in the if statment cos this is where the car isnt
       }
       else {
-        let sum_rgb = [0, 0, 0]
-        let num_cells = 0;
-        for(let wx=-OFFSET;wx<OFFSET;wx++){
-          for (let wy=-OFFSET;wy<OFFSET;wy++) {
-            let pix = sourceImg.get(i+wx, j+wy);
-            for(let c=0; c<3; c++) {
-              sum_rgb[c] += pix[c];
-            }
-            num_cells += 1;
-          }
-        }
-        for(let c=0; c<3; c++) {
-          pix[c] = int(sum_rgb[c] / num_cells);
-        }        
-     }
-
-     set(i, j, pix);
-  }
-  }
- 
-  renderCounter = renderCounter + num_lines_to_draw;
-  updatePixels();
-
-  colorMode(RGB);
-  for(let i=0;i<=4000;i++) {
-    let x = (random(sourceImg.width)); //MAKE THESE NOT RANDOM??
-    let y = (random(sourceImg.height));
-    let pix2 = sourceImg.get(x, y);
-    let car2 = carmaskImg.get(x, y);
-    let face2 = facemaskImg.get(x,y);
-    let col = color(pix2);
-  
-    if(car2[0] > 128) {
-      colorMode(HSB, 360,100,100);
-      let h = hue(col);
-      let s = saturation(col);
-      let b = brightness(col);
-
-      let new_brt = map(b, 0, 100, 30, 50);
-      let new_col = color(h, 0, new_brt);
-      set(x, y, new_col);
-      //let pointSize = 12;
-      //rect(x,y,pointSize, pointSize);
+        rect(x1,y1,x2,y2); //pixelise the car
+      }
+      if(face[1] < 128) {
+      }
+      else { //the face of the car is done last so its on top of the car mask
+        fill(208, 242, 97); //yellowy neon green
+        noStroke(); //cover the face in ellipses
+        ellipse(x1,y1,20,20);
+      }
     }
-
-    fill(pix2);
-    if(face2[0] > 128) {
-      colorMode(RGB);
-      let pointSize = 20;
-      fill(255,0,0,80);
-      ellipse(x, y, pointSize, pointSize);
-    }
-
+    renderCounter = renderCounter + 1;
+  }  
+   
+  if(curLayer == 0 && renderCounter > 1080) {
+    curLayer = 1;
+    renderCounter = 0;
   }
-
-  renderCounter = renderCounter + 1;
-  if(renderCounter > Y_STOP) {
+  else if(curLayer == 1 && renderCounter > 500) {
     console.log("Done!")
     noLoop();
     // uncomment this to save the result
-    // saveArtworkImage(outputFile);
+    //saveArtworkImage(outputFile);
   }
 }
 
